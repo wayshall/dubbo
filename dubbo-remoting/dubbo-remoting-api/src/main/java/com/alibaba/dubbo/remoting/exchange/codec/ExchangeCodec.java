@@ -58,11 +58,11 @@ public class ExchangeCodec extends TelnetCodec {
     protected static final byte     MAGIC_LOW          = Bytes.short2bytes(MAGIC)[1];
 
     // message flag.
-    protected static final byte     FLAG_REQUEST       = (byte) 0x80;
+    protected static final byte     FLAG_REQUEST       = (byte) 0x80;//1000 0000
 
-    protected static final byte     FLAG_TWOWAY        = (byte) 0x40;
+    protected static final byte     FLAG_TWOWAY        = (byte) 0x40;//0100 0000
 
-    protected static final byte     FLAG_EVENT     = (byte) 0x20;
+    protected static final byte     FLAG_EVENT     = (byte) 0x20;//    0010 0000
 
     protected static final int      SERIALIZATION_MASK = 0x1f;
 
@@ -212,18 +212,18 @@ public class ExchangeCodec extends TelnetCodec {
     protected void encodeRequest(Channel channel, ChannelBuffer buffer, Request req) throws IOException {
         Serialization serialization = getSerialization(channel);
         // header.
-        byte[] header = new byte[HEADER_LENGTH];
+        byte[] header = new byte[HEADER_LENGTH];//头部16个字节
         // set magic number.
-        Bytes.short2bytes(MAGIC, header);
+        Bytes.short2bytes(MAGIC, header);//魔数2个字节
 
-        // set request and serialization flag.
-        header[2] = (byte) (FLAG_REQUEST | serialization.getContentTypeId());
-
-        if (req.isTwoWay()) header[2] |= FLAG_TWOWAY;
-        if (req.isEvent()) header[2] |= FLAG_EVENT;
+        // set request and serialization flag.  //序列化类标记，1个字节。
+        header[2] = (byte) (FLAG_REQUEST | serialization.getContentTypeId());//1000 0000 | id，即第四位标识类型
+        //请求类型，标记双向还是单向（即事件方式），1个字节
+        if (req.isTwoWay()) header[2] |= FLAG_TWOWAY;//1000 id | 0100 0000 = 1100 id
+        if (req.isEvent()) header[2] |= FLAG_EVENT;//  1000 id | 0010 0000 = 1010 id
 
         // set request id.
-        Bytes.long2bytes(req.getId(), header, 4);
+        Bytes.long2bytes(req.getId(), header, 4);//请求id，8个字节，偏移量未4，因为魔数2+序列化类型1+请求类型1 = 4
 
         // encode request data.
         int savedWriteIndex = buffer.writerIndex();

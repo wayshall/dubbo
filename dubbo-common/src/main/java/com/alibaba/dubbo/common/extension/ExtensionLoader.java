@@ -86,7 +86,7 @@ public class ExtensionLoader<T> {
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<Map<String,Class<?>>>();
 
     private final Map<String, Activate> cachedActivates = new ConcurrentHashMap<String, Activate>();
-
+    //扩展点实现类中，带有Adaptive注解的实现类
     private volatile Class<?> cachedAdaptiveClass = null;
 
     private final ConcurrentMap<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<String, Holder<Object>>();
@@ -442,7 +442,7 @@ public class ExtensionLoader<T> {
             cachedAdaptiveInstance.set(null);
         }
     }
-
+    
     @SuppressWarnings("unchecked")
     public T getAdaptiveExtension() {
         Object instance = cachedAdaptiveInstance.get();
@@ -519,7 +519,7 @@ public class ExtensionLoader<T> {
                     type + ")  could not be instantiated: " + t.getMessage(), t);
         }
     }
-    
+    //查找所有set方法，并根据方法的参数和属性名称到objectFactory（SpringExtensionFactory）查找对象注入
     private T injectExtension(T instance) {
         try {
             if (objectFactory != null) {
@@ -593,9 +593,9 @@ public class ExtensionLoader<T> {
         loadFile(extensionClasses, SERVICES_DIRECTORY);
         return extensionClasses;
     }
-    
+    //在指定目录找到type的spi配置文件（META-INF/dubbo/xxxx.Container文件），并根据所配置的扩展点名称把键值对put到extensionClasses里，如spring=xxx.SpringContainer
     private void loadFile(Map<String, Class<?>> extensionClasses, String dir) {
-        String fileName = dir + type.getName();
+        String fileName = dir + type.getName();//到指定的目录（比如：META-INF/dubbo/）寻找type类名命名的文件，比如：META-INF/dubbo/internal/com.alibaba.dubbo.common.extension.ExtensionFactory
         try {
             Enumeration<java.net.URL> urls;
             ClassLoader classLoader = findClassLoader();
@@ -613,12 +613,12 @@ public class ExtensionLoader<T> {
                             String line = null;
                             while ((line = reader.readLine()) != null) {
                                 final int ci = line.indexOf('#');
-                                if (ci >= 0) line = line.substring(0, ci);
+                                if (ci >= 0) line = line.substring(0, ci);//井号为注释，去掉
                                 line = line.trim();
                                 if (line.length() > 0) {
                                     try {
                                         String name = null;
-                                        int i = line.indexOf('=');
+                                        int i = line.indexOf('=');//每行用等号分隔键值对
                                         if (i > 0) {
                                             name = line.substring(0, i).trim();
                                             line = line.substring(i + 1).trim();
@@ -650,7 +650,7 @@ public class ExtensionLoader<T> {
                                                 } catch (NoSuchMethodException e) {
                                                     clazz.getConstructor();
                                                     if (name == null || name.length() == 0) {
-                                                        name = findAnnotationName(clazz);
+                                                        name = findAnnotationName(clazz);//如果配置不是kv形式，等号前面没有名称，则按规则截断类名作为spi名称
                                                         if (name == null || name.length() == 0) {
                                                             if (clazz.getSimpleName().length() > type.getSimpleName().length()
                                                                     && clazz.getSimpleName().endsWith(type.getSimpleName())) {
@@ -707,14 +707,14 @@ public class ExtensionLoader<T> {
         com.alibaba.dubbo.common.Extension extension = clazz.getAnnotation(com.alibaba.dubbo.common.Extension.class);
         if (extension == null) {
             String name = clazz.getSimpleName();
-            if (name.endsWith(type.getSimpleName())) {
+            if (name.endsWith(type.getSimpleName())) {//如果要加载的类名，以所属的type类名为结尾，则去掉此后缀作为spi的名称
                 name = name.substring(0, name.length() - type.getSimpleName().length());
             }
             return name.toLowerCase();
         }
         return extension.value();
     }
-    
+  //生成并实例化Adaptive
     @SuppressWarnings("unchecked")
     private T createAdaptiveExtension() {
         try {
@@ -725,18 +725,18 @@ public class ExtensionLoader<T> {
     }
     
     private Class<?> getAdaptiveExtensionClass() {
-        getExtensionClasses();
-        if (cachedAdaptiveClass != null) {
+        getExtensionClasses();//在指定目录找到type的spi配置文件（META-INF/dubbo/xxxx.Container文件），并根据所配置的扩展点名称把键值对put到extensionClasses里，如spring=xxx.SpringContainer
+        if (cachedAdaptiveClass != null) {//扩展点实现类中，带有Adaptive注解的实现类
             return cachedAdaptiveClass;
         }
-        return cachedAdaptiveClass = createAdaptiveExtensionClass();
+        return cachedAdaptiveClass = createAdaptiveExtensionClass();//如果没有找到，则生成一个
     }
-    
+    //根据type类生成对应的Adaptive扩展类的代码并编译为class对象
     private Class<?> createAdaptiveExtensionClass() {
-        String code = createAdaptiveExtensionClassCode();
+        String code = createAdaptiveExtensionClassCode();//生成Adaptive扩展类代码
         ClassLoader classLoader = findClassLoader();
         com.alibaba.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(com.alibaba.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
-        return compiler.compile(code, classLoader);
+        return compiler.compile(code, classLoader);//编译。。。
     }
     
     private String createAdaptiveExtensionClassCode() {

@@ -24,7 +24,7 @@ package com.alibaba.dubbo.common.serialize.support.dubbo;
 public interface GenericDataFlags
 {
 	// prefix three bits
-	byte VARINT = 0, OBJECT = (byte)0x80;
+	byte VARINT = 0, OBJECT = (byte)0x80;//1000 0000
 
 	// varint tag
 	byte VARINT8 = VARINT, VARINT16 = VARINT | 1, VARINT24 = VARINT | 2, VARINT32 = VARINT | 3;

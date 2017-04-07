@@ -138,14 +138,14 @@ public abstract class AbstractConfig implements Serializable {
         if (config == null) {
             return;
         }
-        String prefix = "dubbo." + getTagName(config.getClass()) + ".";
+        String prefix = "dubbo." + getTagName(config.getClass()) + ".";//去掉Config，Bean等类名后缀
         Method[] methods = config.getClass().getMethods();
         for (Method method : methods) {
             try {
                 String name = method.getName();
                 if (name.length() > 3 && name.startsWith("set") && Modifier.isPublic(method.getModifiers()) 
                         && method.getParameterTypes().length == 1 && isPrimitive(method.getParameterTypes()[0])) {
-                    String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), "-");
+                    String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), "-");//把属性的大小写转为横杠分隔
 
                     String value = null;
                     if (config.getId() != null && config.getId().length() > 0) {
@@ -156,7 +156,7 @@ public abstract class AbstractConfig implements Serializable {
                         }
                     }
                     if (value == null || value.length() == 0) {
-                        String pn = prefix + property;
+                        String pn = prefix + property;//dubbo.类名.属性名，如：dubbo.application.name
                         value = System.getProperty(pn);
                         if(! StringUtils.isBlank(value)) {
                             logger.info("Use System Property " + pn + " to config dubbo");
@@ -216,7 +216,7 @@ public abstract class AbstractConfig implements Serializable {
     protected static void appendParameters(Map<String, String> parameters, Object config) {
         appendParameters(parameters, config, null);
     }
-    
+    //通过反射把config的属性名和值put到parameters里。dubbo里大量类似的操作都通过get所有方法然后通过方法名的前缀来判断，为什么不直接通过反射获取PropertyDescriptor。。。
     @SuppressWarnings("unchecked")
     protected static void appendParameters(Map<String, String> parameters, Object config, String prefix) {
         if (config == null) {

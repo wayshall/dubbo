@@ -296,7 +296,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             host = provider.getHost();
         }
         boolean anyhost = false;
-        if (NetUtils.isInvalidLocalHost(host)) {
+        if (NetUtils.isInvalidLocalHost(host)) {//如果不是有效的本地地址，则通过各种方式获取本地地址
             anyhost = true;
             try {
                 host = InetAddress.getLocalHost().getHostAddress();
@@ -387,7 +387,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                                         //一个方法中单个callback
                                         if (argument.getIndex() != -1 ){
                                             if (argtypes[argument.getIndex()].getName().equals(argument.getType())){
-                                                appendParameters(map, argument, method.getName() + "." + argument.getIndex());
+                                                appendParameters(map, argument, method.getName() + "." + argument.getIndex());//方法名.1=value，方法名.2=value
                                             }else {
                                                 throw new IllegalArgumentException("argument config error : the index attribute and type attirbute not match :index :"+argument.getIndex() + ", type:" + argument.getType());
                                             }

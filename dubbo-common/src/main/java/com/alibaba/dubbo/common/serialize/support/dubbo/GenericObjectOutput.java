@@ -83,8 +83,8 @@ public class GenericObjectOutput extends GenericDataOutput implements ObjectOutp
 		else
 		{
 			String desc = ReflectUtils.getDesc(c);
-			int index = mMapper.getDescriptorIndex(desc);
-			if( index < 0 )
+			int index = mMapper.getDescriptorIndex(desc);//用int标记java类型，精简数据量。具体类型对应标记见com.alibaba.dubbo.common.serialize.support.dubbo.Builder.{...}
+			if( index < 0 )//如果不是dubbo内建支持的类型，则直接写入类型的描述字符串写
 			{
 				write0(OBJECT_DESC);
 				writeUTF(desc);
@@ -93,7 +93,7 @@ public class GenericObjectOutput extends GenericDataOutput implements ObjectOutp
 			{
 				write0(OBJECT_DESC_ID);
 				writeUInt(index);
-			}
+			}//如果不是dubbo内建支持的类型，会通过javassist动态生成builder: com.alibaba.dubbo.common.serialize.support.dubbo.Builder.newObjectBuilder(Class<?>)
 			Builder b = Builder.register(c, isAllowNonSerializable);
 			b.writeTo(obj, this);
 		}
